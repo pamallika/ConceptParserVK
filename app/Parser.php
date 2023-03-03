@@ -4,8 +4,13 @@ namespace app;
 
 use Illuminate\Support\Facades\Log;
 
-class Parser
+class Parser implements \ParserInterface
 {
+    /**
+     * @var $1|false|\SimpleXMLElement
+     */
+    private $xml;
+
     /**
      * Путь к файлу XML
      * @param string $xml
@@ -15,7 +20,10 @@ class Parser
         $this->xml = simplexml_load_file($xml);
     }
 
-    public function getFlower():array
+    /**
+     * @return array
+     */
+    public function getFlower(): array
     {
         try {
             $result = [];
@@ -28,7 +36,11 @@ class Parser
             return $result;
         }
     }
-    public function getTiltle():array
+
+    /**
+     * @return array
+     */
+    public function getTiltle(): array
     {
         try {
             $result = [];
@@ -41,7 +53,8 @@ class Parser
             return $result;
         }
     }
-    public function getDescription():array
+
+    public function getDescription(): array
     {
         try {
             $result = [];
@@ -54,7 +67,8 @@ class Parser
             return $result;
         }
     }
-    public function getSpecies():array
+
+    public function getSpecies(): array
     {
         try {
             $result = [];
@@ -69,7 +83,8 @@ class Parser
             return $result;
         }
     }
-    public function getGenus():array
+
+    public function getGenus(): array
     {
         try {
             $result = [];
@@ -84,6 +99,7 @@ class Parser
             return $result;
         }
     }
+
     public function getPhotos()
     {
         try {
@@ -104,4 +120,45 @@ class Parser
         }
     }
 
+    public function downloadImages(): array
+    {
+        try {
+            $result = [];
+            $i = 1;
+            $photoTagName = "photo$i";
+            $helper = new ImageHelper();
+            foreach ($this->xml->flowers as $flower) {
+                while (isset($flower->$photoTagName)) {
+                    $helper->downloadImage($flower->$photoTagName, '');
+                    $i++;
+                    $photoTagName = "photo$i";
+                }
+            }
+        } catch (\Error $message) {
+            Log::error($message);
+        } finally {
+            return $result;
+        }
+    }
+
+    public function saveImagesToDb(): array
+    {
+        try {
+            $result = [];
+            $i = 1;
+            $photoTagName = "photo$i";
+            $helper = new ImageHelper();
+            foreach ($this->xml->flowers as $flower) {
+                while (isset($flower->$photoTagName)) {
+                    $helper->saveImageDb($flower->$photoTagName);
+                    $i++;
+                    $photoTagName = "photo$i";
+                }
+            }
+        } catch (\Error $message) {
+            Log::error($message);
+        } finally {
+            return $result;
+        }
+    }
 }

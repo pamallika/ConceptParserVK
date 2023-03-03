@@ -12,13 +12,14 @@ use Illuminate\Support\Facades\Mail;
 
 class DownloadImages implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue,Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public function __construct(string $pathToImage, string $email)
     {
         $this->pathToImage = $pathToImage;
         $this->email = $email;
     }
+
     public function handle()
     {
         try {
@@ -26,8 +27,7 @@ class DownloadImages implements ShouldQueue
             header('Content-Type: image/png');
             readfile($this->pathToImage);
             //Для работы почты нужно настроить конфиги сервера поты в файле конфигов .env в корне
-            Mail::send(['text' => 'mail'], ['path' => $this->pathToImage], function (string $message)
-            {
+            Mail::send(['text' => 'mail'], ['path' => $this->pathToImage], function (string $message) {
                 $message->to($this->email)->subject('Download images');
                 $message->from('VK Group');
             });
